@@ -1,0 +1,10 @@
+/global/scratch/nathan_sandford/kurucz/scripts/convolve.py RGB_m1.5_1000a.h5 35000 3900 8350 -rs 3 -N --spec_dir synthetic_spectra/HMC_valid2/R300000
+/global/scratch/nathan_sandford/kurucz/scripts/convolve.py RGB_m1.5_1000b.h5 35000 3900 8350 -rs 3 -N --spec_dir synthetic_spectra/HMC_valid2/R300000
+/global/scratch/nathan_sandford/kurucz/scripts/convolve.py RGB_m1.5_1000c.h5 35000 3900 8350 -rs 3 -N --spec_dir synthetic_spectra/HMC_valid2/R300000
+/global/scratch/nathan_sandford/kurucz/scripts/convolve.py RGB_m1.5_1000d.h5 35000 3900 8350 -rs 3 -N --spec_dir synthetic_spectra/HMC_valid2/R300000
+/global/scratch/nathan_sandford/kurucz/scripts/convolve.py RGB_m1.5_1000e.h5 35000 3900 8350 -rs 3 -N --spec_dir synthetic_spectra/HMC_valid2/R300000
+/global/scratch/nathan_sandford/kurucz/scripts/convolve.py RGB_m1.5_1000f.h5 35000 3900 8350 -rs 3 -N --spec_dir synthetic_spectra/HMC_valid2/R300000
+/global/scratch/nathan_sandford/kurucz/scripts/convolve.py RGB_m1.5_1000g.h5 35000 3900 8350 -rs 3 -N --spec_dir synthetic_spectra/HMC_valid2/R300000
+/global/scratch/nathan_sandford/kurucz/scripts/convolve.py RGB_m1.5_1000h.h5 35000 3900 8350 -rs 3 -N --spec_dir synthetic_spectra/HMC_valid2/R300000
+/global/scratch/nathan_sandford/kurucz/scripts/convolve.py RGB_m1.5_1000i.h5 35000 3900 8350 -rs 3 -N --spec_dir synthetic_spectra/HMC_valid2/R300000
+/global/scratch/nathan_sandford/kurucz/scripts/convolve.py RGB_m1.5_1000j.h5 35000 3900 8350 -rs 3 -N --spec_dir synthetic_spectra/HMC_valid2/R300000

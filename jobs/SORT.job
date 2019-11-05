@@ -1,0 +1,29 @@
+#!/bin/bash
+# Job name:
+#SBATCH --job-name=sort
+#
+# Account:
+#SBATCH --account=co_dweisz
+#
+# Partition:
+#SBATCH --partition=savio2
+#
+# QoS:
+#SBATCH --qos=dweisz_savio2_normal
+#
+# Nodes
+#SBATCH --nodes=1
+#
+# Tasks per node
+#SBATCH --ntasks-per-node=24
+#
+# Wall clock limit:
+#SBATCH --time=5:00:00
+#
+#SBATCH --output=logs/sort.txt
+#
+## Command(s) to run:
+echo "Loading modules"
+module load python
+
+python ../scripts/compile_spectra.py kurucz_run9 RGB_m1.5_1000j -sort -combine

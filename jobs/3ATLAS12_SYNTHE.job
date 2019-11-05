@@ -1,0 +1,32 @@
+#!/bin/bash
+# Job name:
+#SBATCH --job-name=.atlas12+synthe3
+#
+# Account:
+#SBATCH --account=co_dweisz
+#
+# Partition:
+#SBATCH --partition=savio2
+#
+# QoS:
+#SBATCH --qos=dweisz_savio2_normal
+#
+# Nodes
+#SBATCH --nodes=2
+#
+# Tasks per node
+#SBATCH --ntasks-per-node=24
+#
+# Wall clock limit:
+#SBATCH --time=48:00:00
+#
+#SBATCH --output=logs/atlas12_synthe3.txt
+#
+## Command(s) to run:
+echo "Loading modules"
+module load gcc openmpi # or module load intel openmpi
+module load python
+
+echo "Sending to ht_helper"
+echo $SLURM_NODELIST
+ht_helper.sh -m "python/3.6" -t tasks/krun3.task

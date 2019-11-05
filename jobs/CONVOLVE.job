@@ -1,0 +1,32 @@
+#!/bin/bash
+# Job name:
+#SBATCH --job-name=convolve
+#
+# Account:
+#SBATCH --account=co_dweisz
+#
+# Partition:
+#SBATCH --partition=savio2_bigmem
+#
+# QoS:
+#SBATCH --qos=dweisz_bigmem2_normal
+#
+# Nodes
+#SBATCH --nodes=1
+#
+# Tasks per node
+#SBATCH --ntasks-per-node=24
+#
+# Wall clock limit:
+#SBATCH --time=24:00:00
+#
+#SBATCH --output=logs/convolve.txt
+#
+## Command(s) to run:
+echo "Loading modules"
+module load gcc openmpi # or module load intel openmpi
+module load python
+
+echo "Sending to ht_helper"
+echo $SLURM_NODELIST
+ht_helper.sh -m "python/3.6" -t tasks/convolve_hires.task
