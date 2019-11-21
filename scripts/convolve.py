@@ -71,6 +71,8 @@ elif args.output_dir:
     output_dir = kout.joinpath(args.output_dir)
 else:
     output_dir = kout.joinpath(output_dir)
+if not output_dir.is_dir():
+    output_dir.mkdir(parents=True, exist_ok=False)
 assert output_dir.is_dir(), f'Output directory {output_dir} does not exist'
 
 if args.spec_file[-3:] != '.h5':
