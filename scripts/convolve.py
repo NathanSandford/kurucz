@@ -15,9 +15,9 @@ description = \
 Defaults
 '''
 kbase = Path('/global/scratch/nathan_sandford/kurucz')
-krun_base = 'kurucz_run'
 kout = 'kurucz_out'
 spec_dir = 'synthetic_spectra'
+output_dir = 'convolved'
 output_tag = '_conv'
 R_Samp = 3
 
@@ -34,9 +34,13 @@ parser.add_argument("end_wavelength", metavar="End", type=float,
 parser.add_argument("--kbase", "-kb",
                     help=f"Base directory (default: {kbase})")
 parser.add_argument("--kout", "-ko",
-                    help=f"Path to Output Directory (default: {kout})")
-parser.add_argument("--spec_dir",
-                    help=f"Path to Spectra Directory (default: {spec_dir})")
+                    help=f"Relative path to Output Directory from kbase (default: {kout})")
+parser.add_argument("--spec_dir", "-sd",
+                    help=f"Relative path to Spectra Directory from kout (default: {spec_dir})")
+parser.add_argument("--output_dir", "-od",
+                    help=f"Relative Path to Output Directory from spec_dir (default: {output_dir})")
+parser.add_argument("--abs_output_dir", "-aod",
+                    help=f"Absolute Path to Output Directory - overrides output_dir (default: N/A)")
 parser.add_argument("--output_tag", "-o",
                     help="tag to append to convolved spectra files (default: {output_tag})")
 parser.add_argument("--normalize", '-N', action="store_true", default=False,
@@ -61,15 +65,23 @@ else:
     spec_dir = kout.joinpath(spec_dir)
 assert spec_dir.is_dir(), f'Spectra directory {spec_dir} does not exist'
 
+if args.abs_output_dir:
+    output_dir = Path(args.abs_output_dir)
+elif args.output_dir:
+    output_dir = kout.joinpath(args.output_dir)
+else:
+    output_dir = kout.joinpath(output_dir)
+assert output_dir.is_dir(), f'Output directory {output_dir} does not exist'
+
 if args.spec_file[-3:] != '.h5':
     spec_file = spec_dir.joinpath(args.spec_file+'.h5')
 else:
     spec_file = spec_dir.joinpath(args.spec_file)
 
 if args.output_tag:
-    output_file = spec_dir.joinpath(spec_file.name[:-3]+f'{args.output_tag}.h5')
+    output_file = output_dir.joinpath(spec_file.name[:-3]+f'{args.output_tag}.h5')
 else:
-    output_file = spec_dir.joinpath(spec_file.name[:-3]+f'{output_tag}.h5')
+    output_file = output_dir.joinpath(spec_file.name[:-3]+f'{output_tag}.h5')
 
 R_Res = args.R_Res
 start_wavelength = args.start_wavelength
@@ -190,6 +202,7 @@ continuum = pd.read_hdf(spec_file, 'continuum')
 if normalize:
     spectra /= continuum
 
+print(f'Beginning convolution of {spec_file.name}')
 conv_spec = convolve_spec(wave=wavelength[0].values,
                           spec=spectra.values.T,
                           resolution=R_Res,
