@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 import shutil
 import numpy as np
+from mendeleev import element
 
 description = \
     '''
@@ -17,6 +18,9 @@ kbase = Path('/global/scratch/nathan_sandford/kurucz/')
 khome = kbase.joinpath('kurucz_home/')
 krun_base = kbase.joinpath('kurucz_run/')
 name = 'grids'
+alphafe = 0.0
+alpha_el = ['O', 'Ne', 'Mg', 'Si', 'S', 'Ar', 'Ca', 'Ti']
+include_alpha = True
 dX_teff = 50
 dX_logg = 0.1
 dX_v_micro = 0.1
@@ -38,6 +42,12 @@ parser.add_argument("--krun_base", "-krb",
                     help=f"Path to Directory where code runs {krun_base.name}")
 parser.add_argument("--name", "-n",
                     help=f"Directory in krun to save atmospheres (default: {name})")
+parser.add_argument("--alphafe", "-afe", type=float,
+                    help=f"[alpha/Fe] (default: {alphafe})")
+parser.add_argument("--alpha_el", nargs='+',
+                    help=f"Free abundances (default: {' '.join(alpha_el)})")
+parser.add_argument("--ignore_alpha", action="store_true",
+                    help="Ignore [alpha/Fe] perturbations")
 parser.add_argument("--dX_teff", "-dT", type=float,
                     help=f"Step size in T_eff (default: {dX_teff} K)")
 parser.add_argument("--dX_logg", "-dg", type=float,
@@ -79,6 +89,14 @@ if output_dir.is_dir():
         shutil.rmtree(output_dir)
         output_dir.mkdir()
 
+if args.alphafe:
+    alphafe = alphafe
+if args.alpha_el:
+    alpha_el = args.alpha_el
+alpha_ind = [el.atomic_number for el in element(alpha_el)]
+if args.ignore_alpha:
+    include_alpha = False
+
 if args.dX_teff:
     dX_teff = args.dX_teff
 if args.dX_logg:
@@ -101,8 +119,9 @@ v_micro = args.v_micro  # km/s
 
 '''Summary'''
 if verbose:
-    print(f'Reference Atmosphere: Teff={teff:.0f} K, ' \
-          + f'Log(g)={logg:.1f}, [Fe/H]={feh:.2f}, v_micro={v_micro:.2} km/s')
+    print(f'Reference Atmosphere: Teff={teff:.0f} K, Log(g)={logg:.1f}, '
+          + f'[Fe/H]={feh:.2f}, [alpha/Fe]={alphafe:.2f}, '
+          + f'v_micro={v_micro:.2} km/s')
 
 '''
 Initialize Input Arrays w/ Solar Labels:
@@ -133,9 +152,13 @@ element_array = np.array([4750., 2.5,
                           -20.00, -20.00])
 
 if symmetric:
-    num_models = 2 * len(element_array) + 3
+    num_models = 2 * len(element_array) + 3  # 2/(el,logg,teff) + 2/vmicro + 1 ref
+    if include_alpha:
+        num_models += 2
 else:
-    num_models = len(element_array) + 2
+    num_models = len(element_array) + 2  # 1/(el,logg,teff) + 1/vmicro + 1 ref
+    if include_alpha:
+        num_models += 1
 element_array = np.repeat(np.array([element_array]), num_models, axis=0).T
 if verbose:
     print(f'Generating {num_models} models')
@@ -143,16 +166,15 @@ if verbose:
 '''
 Change teff & logg
 '''
-element_array[0, :] = np.repeat(teff, num_models)
-element_array[1, :] = np.repeat(logg, num_models)
-v_micro = np.repeat(v_micro, num_models)
+element_array[0, :] = teff
+element_array[1, :] = logg
+v_micro_array = v_micro * np.ones(num_models)
 
 '''
 Scale global metallicity
 '''
-feh = np.repeat(feh, num_models)  # Just for atmosphere interpolation later
-element_array[2:, :] = element_array[2:, :] \
-                       + np.repeat(feh * np.ones((1, num_models)), element_array.shape[0] - 2, axis=0)
+element_array[2:, :] += feh
+element_array[alpha_ind, :] += alphafe
 
 '''
 Apply offsets to all labels
@@ -162,21 +184,29 @@ if symmetric:
     element_array[0, 2] -= dX_teff
     element_array[1, 3] += dX_logg
     element_array[1, 4] -= dX_logg
-    v_micro[5] += dX_v_micro
-    v_micro[6] -= dX_v_micro
-    model = 7
-    for i in range(2, np.int(num_models/2-2)): 
-        element_array[i, model] += dX_abundances
-        element_array[i, model + 1] -= dX_abundances
-        model += 2 
+    v_micro_array[5] += dX_v_micro
+    v_micro_array[6] -= dX_v_micro
+    if include_alpha:
+        element_array[alpha_ind, 7] += dX_abundances
+        element_array[alpha_ind, 8] -= dX_abundances
+        a = 9
+    else:
+        a = 7
+    diag_ind = np.diag_indices_from(element_array[2:, a::2])
+    element_array[2:, a::2][diag_ind] += dX_abundances
+    element_array[2:, (a+1)::2][diag_ind] -= dX_abundances
 else:
     element_array[0, 1] += dX_teff
     element_array[1, 2] += dX_logg
-    v_micro[3] += dX_v_micro
-    model = 4
-    for i in range(2, np.int(num_models-2)):
-        element_array[i, model] += dX_abundances
-        model += 1
+    v_micro_array[3] += dX_v_micro
+    if include_alpha:
+        element_array[alpha_ind, 4] += dX_abundances
+        element_array[alpha_ind, 5] -= dX_abundances
+        a = 6
+    else:
+        a = 4
+    diag_ind = np.diag_indices_from(element_array[2:, a::2])
+    element_array[2:, a::2][diag_ind] += dX_abundances
 
 '''
 Renormalize Hydrogen such that X+Y+Z=1
@@ -493,9 +523,10 @@ for c1 in range(num_models):
         # Save Labels
         label_file = model_dir.joinpath(f'{file_index}_labels.npz')
         np.savez(label_file,
+                 alpha_included=include_alpha,
                  teff=element_array[0, c1],
                  logg=element_array[1, c1],
-                 v_micro=v_micro[c1],
+                 v_micro=v_micro_array[c1],
                  elems_array=np.concatenate([[renormed_H[c1]], [solar_He],
                                              element_array[2:, c1]]))
 
