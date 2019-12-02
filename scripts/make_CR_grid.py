@@ -93,7 +93,7 @@ if args.alphafe:
     alphafe = alphafe
 if args.alpha_el:
     alpha_el = args.alpha_el
-alpha_ind = [el.atomic_number for el in element(alpha_el)]
+alpha_ind = [el.atomic_number-1 for el in element(alpha_el)]
 if args.ignore_alpha:
     include_alpha = False
 
