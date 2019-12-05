@@ -68,9 +68,9 @@ assert spec_dir.is_dir(), f'Spectra directory {spec_dir} does not exist'
 if args.abs_output_dir:
     output_dir = Path(args.abs_output_dir)
 elif args.output_dir:
-    output_dir = kout.joinpath(args.output_dir)
+    output_dir = spec_dir.joinpath(args.output_dir)
 else:
-    output_dir = kout.joinpath(output_dir)
+    output_dir = spec_dir.joinpath(output_dir)
 if not output_dir.is_dir():
     output_dir.mkdir(parents=True, exist_ok=False)
 assert output_dir.is_dir(), f'Output directory {output_dir} does not exist'
