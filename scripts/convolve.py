@@ -72,7 +72,7 @@ elif args.output_dir:
 else:
     output_dir = spec_dir.joinpath(output_dir)
 if not output_dir.is_dir():
-    output_dir.mkdir(parents=True, exist_ok=False)
+    output_dir.mkdir(parents=True, exist_ok=True)
 assert output_dir.is_dir(), f'Output directory {output_dir} does not exist'
 
 if args.spec_file[-3:] != '.h5':
